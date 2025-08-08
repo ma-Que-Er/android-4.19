@@ -41,7 +41,7 @@ jobs:
       - name: Set up Android Kernel source
         run: |
           mkdir -p android-kernel && cd android-kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b android-msm-redbull-4.19-android11-qpr2
+          repo init -u https://android.googlesource.com/kernel/manifest -b android-msm-bramble-4.19-android11-d1
           repo sync -j$(nproc) -c --no-tags --optimized-fetch --force-sync
 
       - name: Copy kerneldriver
