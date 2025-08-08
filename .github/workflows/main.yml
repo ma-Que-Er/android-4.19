@@ -47,6 +47,8 @@ jobs:
           ls
           cd private
           ls
+          cd msm-google
+          ls
           cp -r ../kerneldriver common/drivers
 
       - name: Modify Makefile
