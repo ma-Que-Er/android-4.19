@@ -1,78 +1,86 @@
-# `android-kernel-driver-template`
+**Read this in other languages: [English](README.md), [中文](README_zh.md).**
+# Automated Kernel Driver Builder
 
-[![build](https://github.com/gmh5225/android-kernel-driver-template/actions/workflows/build.yml/badge.svg)](https://github.com/gmh5225/android-kernel-driver-template/actions/workflows/build.yml)
-[![GitHub license](https://img.shields.io/github/license/gmh5225/android-kernel-driver-template)](https://github.com/gmh5225/android-kernel-driver-template/blob/main/LICENSE)
+This GitHub Action automates the process of building Android kernel drivers in the cloud, eliminating the need for local compilation environments. It solves common issues like accessing Google's source repositories and reduces compilation time to under 30min.
 
-This is a GKI Android kernel driver(``ARMv8.3``) template compiled using ``llvm-msvc``, aimed at facilitating the development of GKI Android kernel drivers.The development environment used is ``Win11``+``WSL2``+``VSCode``.
+## Key Features
 
-### What's [Android GKI](https://source.android.com/docs/core/architecture/kernel/generic-kernel-image)?
-A product kernel, also known as a device kernel or OEM kernel, is the kernel that you ship on your device. Prior to GKI, the product kernel was derived from a series of upstream kernel changes. Following shows how kernel additions yield a product kernel (OEM/device kernel):
-![image](https://github.com/gmh5225/android-kernel-driver-template/assets/13917777/612e37d0-341a-4f90-9038-c366a05e72fa)
+- ✅ **Cloud-based compilation** - No local setup required
+- ✅ **Automatic source handling** - Fetches official Android kernel sources
+- ✅ **Version-aware building** - Automatically selects correct build system
+- ✅ **Parameterized inputs** - Customize builds via workflow inputs
+- ✅ **Artifact packaging** - Downloads compiled drivers and kernel images
 
+## Usage Guide
 
-### Requirements
-- Rooted Android devices``(ARMv8.3)`` with [Magisk](https://github.com/topjohnwu/Magisk) or [KernelSU](https://github.com/tiann/KernelSU)
-- [AndroidDriveSignity](https://github.com/gmh5225/AndroidDriveSignity)
-- ADB
-- VSCode
-- WSL/WSL2(Ubuntu-22.04)
-- [clangd plugin for VSCode](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd)
-- [WSL plugin for VSCode](https://code.visualstudio.com/docs/remote/wsl)
-- [llvm-msvc](https://github.com/backengineering/llvm-msvc/releases)
-- [GKI Kit](https://github.com/gmh5225/common-android12-5.10-KernelSU/releases)
+### 1. Repository Setup
+1. Create a `code` directory in your repository
+2. Place these files in the `code` directory:
+   - Driver source files (`.c` and `.h`)
+   - `Makefile` for your driver
+   - Any additional dependencies
 
+### 2. Running the Workflow
+1. Go to your GitHub repository's **Actions** tab
+2. Select **Android Kernel Driver Builder**
+3. Click **Run workflow**
+4. Provide these parameters:
+   - `android_version`: Your Android version (Kernel) (e.g., `14`)
+   - `kernel_version`: Kernel version (e.g., `6.1`)
+   - `driver_name`: Your driver filename (e.g., `mydriver.ko`)
+   - `target_arch`: Device architecture (default: `aarch64`)
 
-### Setup build deps for your WSL/WSL2
-```
-sudo passwd root
-sudo apt update
-sudo apt install python-is-python3
-sudo apt install build-essential make cmake
-sudo apt install p7zip-full p7zip-rar
-sudo apt install bear
-```
+### 3. Retrieving Results
+After successful compilation (30minutes):
+1. Go to the completed workflow run
+2. Download the `kernel-driver-<arch>` artifact
+3. Extract to find:
+   - Compiled driver (`.ko` file)
+   - Kernel images (`boot.img`)
+   - Build logs
 
-### Remove environment variables on windows
-Open ``wsl.conf`` by running:
-```
-sudo vim /etc/wsl.conf
-```
-Append the following lines to the end of the file:
-```
-[interop]
-appendWindowsPath = false
-```
-Restart your WSL instance by executing:
-```
-wsl --terminate <distro>
-```
-Replace <distro> with the name of your distribution, which can be found using the command:
-```
-wsl --list --verbose
-```
+## Configuration Reference
 
-### Building
-```
-wget -nv https://github.com/gmh5225/common-android12-5.10-KernelSU/releases/download/v1.0.1/GKI-android12-5.10-kit.zip && 7z x GKI-android12-5.10-kit.zip
-wget -nv https://github.com/backengineering/llvm-msvc/releases/download/llvm-msvc-v777.1.4/android-wrapper-llvm-msvc.zip && 7z x android-wrapper-llvm-msvc.zip
+### Input Parameters
 
-export ANDROID_GKI_KIT_PATH=$(pwd)/GKI-android12-5.10-kit/
-export ANDROID_OLLVM_INSTALLER=$(pwd)/install/
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `android_version` | Android OS version | `11`, `12`, `13`, `14` |
+| `kernel_version` | Linux kernel version | `5.10`, `5.15`, `6.1` |
+| `driver_name` | Output driver filename | `custom_driver.ko` |
+| `target_arch` | Device CPU architecture | `aarch64`, `x86_64` |
 
-git clone --recursive https://github.com/gmh5225/android-kernel-driver-template
-cd android-kernel-driver-template
-bear -- make && make clean
-```
+### Technical Notes
 
-## Testing on android12-5.10
-```
-adb push demo.ko /data/local/tmp
-adb shell su -c insmod /data/local/tmp/demo.ko
-adb shell su -c "lsmod |grep demo"
-adb shell su -c rmmod /data/local/tmp/demo.ko
-```
+1. **Build System Selection**:
+   - Android 11 and earlier: Legacy `build.sh` system
+   - Android 12 and later: Modern Bazel build system
 
-## Credits
-- ``Linux``
-- ``Android``
-- Some anonymous people
+2. **Source Management**:
+   - Automatically fetches kernel sources from Google's repositories
+   - Uses parallel downloading for faster sync
+
+3. **Driver Integration**:
+   - Automatically adds driver to kernel build system
+   - Registers driver as GKI module
+   - Handles Makefile modifications
+
+## Troubleshooting
+
+**Q: Build fails with "repo sync" errors**  
+A: Retry the workflow. Google's servers can occasionally timeout.
+
+**Q: Driver not found in output artifacts**  
+A: Verify:
+- Correct `driver_name` parameter (must match Makefile)
+- Source files are in `/code` directory
+- Makefile produces expected `.ko` filename
+
+**Q: "Kernel configuration not found" error**  
+A: Confirm your kernel_version matches existing branches at [Android Kernel Sources](https://android.googlesource.com/kernel/manifest/)
+
+## Support
+
+For issues and feature requests:
+- [Open an Issue](https://github.com/systemnb/compile_android_driver/issues)
+- Provide workflow logs and input parameters
