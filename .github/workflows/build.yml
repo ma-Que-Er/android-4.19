@@ -13,7 +13,7 @@ on:
         description: 'Driver Module Name (e.g., mydriver.ko)'
         required: true
       target_arch:
-        description: 'Target Architecture (aarch64, x86_64, etc.)'
+        description: 'Target Architecture (aarch64, x86_64, etc.)' 
         required: true
         default: 'aarch64'
 
