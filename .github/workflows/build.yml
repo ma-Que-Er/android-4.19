@@ -3,9 +3,6 @@ name: Android Kernel Driver Builder
 on:
   workflow_dispatch:
     inputs:
-      android_Link:
-        description: 'AndroidLink'
-        required: true
       android_version:
         description: 'Android Version (Kernel) (e.g., 14)'
         required: true
@@ -41,7 +38,7 @@ jobs:
       - name: Set up Android Kernel source
         run: |
           mkdir -p android-kernel && cd android-kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b android-msm-bramble-4.19-android11-d1
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android-4.19-stable
           repo sync -j$(nproc) -c --no-tags --optimized-fetch --force-sync
 
       - name: Copy kerneldriver
