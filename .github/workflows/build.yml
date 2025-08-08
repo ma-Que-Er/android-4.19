@@ -41,7 +41,7 @@ jobs:
       - name: Set up Android Kernel source
         run: |
           mkdir -p android-kernel && cd android-kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b q-common-android-4.19
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android-4.19-stable
           repo sync -j$(nproc) -c --no-tags --optimized-fetch --force-sync
 
       - name: Copy kerneldriver
